@@ -191,7 +191,7 @@ body{
 <div id="start-screen" class="screen active">
   <span class="logo-icon">⚽</span>
   <h1>你的足球人格是？</h1>
-  <p class="sub">8 维评估 · 24 道情景题 · 33 位球星库<br/>测测你在赛场上最像哪位传奇或新星</p>
+  <p class="sub">8 维评估 · 23 道情景题 · 33 位球星库<br/>测测你在赛场上最像哪位传奇或新星</p>
   <div class="credit">✦ 本测试由 vv 倾情制作 ✦</div>
   <div class="dim-preview">
     <span>创造力</span><span>边路倾向</span><span>进攻性</span><span>技巧性</span>
@@ -407,15 +407,15 @@ const PP = [
   {n:'Bukayo Saka',nk:'本土之星',em:'⭐',p:[5,8,6,7,6,3,4,7],cl:'Arsenal',d:'你就是萨卡——从青训营走出的本土之星。技术扎实速度出色，沉稳和职业态度更是可贵。'},
   {n:'Phil Foden',nk:'曼城之子',em:'👶',p:[7,5,7,8,4,6,2,3],cl:'Manchester City',d:'你就是福登——曼城青训走出的天才。左右脚均衡到无法预判。瓜迪奥拉体系中最闪耀的明珠。'},
 
-  // CUSTOM — Wei Wei, copied after test
-  {n:'Wei Wei',nk:'待定',em:'🏮',p:[5,5,5,5,5,5,5,5],cl:'XFY',d:'你就是 Wei Wei——XFY 的队长和灵魂。你的风格由你自己定义。'}
+  // CUSTOM — Wei Wei
+  {n:'Wei Wei',nk:'全能核心',em:'🏮',p:[7,2,6,1,3,7,4,2],cl:'XFY',d:'你就是 Wei Wei——XFY 的队长和灵魂。均衡全面的能力让你在场上无所不能，创造力与冷静兼备，技术与身体并重。你是独一无二的顶级球员。'}
 ];
 const WEI_IDX = PP.length - 1;
 
 // ═══════════════════ QUIZ STATE ═══════════════════
 let curQ=0, totalScores=[0,0,0,0,0,0,0,0];
 let answerIdx = new Array(QQ.length).fill(-1); // which option selected per Q (-1 = none)
-const QEMOJI = ['⚽','🧠','🔥','🎯','💪','🎭','🤝','⏰','🐾','💎','📐','🏆','🎪','🏃','🎨','📋','📣','🛡️','⏱️','🎧','🌟','😤','🧘','🤲'];
+const QEMOJI = ['⚽','🧠','🔥','🎯','💪','🎭','🤝','⏰','🐾','💎','📐','🏆','🎪','🏃','🎨','📋','📣','🛡️','⏱️','🎧','🌟','😤','🧘'];
 
 function startQuiz(){
   document.querySelectorAll('.screen.active').forEach(s=>s.classList.remove('active'));
@@ -496,51 +496,16 @@ function prevQ(){
 // ═══════════════════ MATCH ═══════════════════
 function cosSim(a,b){let d=0,na=0,nb=0;for(let i=8;i--;){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return d/(Math.sqrt(na)*Math.sqrt(nb)||1)}
 
-function saveWeiWei(){
-  try{localStorage.setItem('ww_p',JSON.stringify(PP[WEI_IDX].p));localStorage.setItem('ww_nk',PP[WEI_IDX].nk);localStorage.setItem('ww_d',PP[WEI_IDX].d)}catch(e){}
-}
-function loadWeiWei(){
-  try{
-    const p=localStorage.getItem('ww_p');if(p)PP[WEI_IDX].p=JSON.parse(p);
-    const nk=localStorage.getItem('ww_nk');if(nk)PP[WEI_IDX].nk=nk;
-    const d=localStorage.getItem('ww_d');if(d)PP[WEI_IDX].d=d;
-  }catch(e){}
-}
 function findMatches(){
-  // Copy user profile to Wei Wei only on first run
-  if(!localStorage.getItem('ww_locked')){
-    PP[WEI_IDX].p = totalScores.map(v=>Math.round(v/(QQ.length*3)*10));
-    PP[WEI_IDX].nk = weiNick(totalScores);
-    PP[WEI_IDX].d = weiDesc(totalScores);
-    saveWeiWei();
-    try{localStorage.setItem('ww_locked','1')}catch(e){}
-  }
-
   const u=totalScores.slice(),um=Math.sqrt(u.reduce((s,v)=>s+v*v,0));
   const un=um>0?u.map(v=>v/um):u;
   return PP.map((p,i)=>{
     const mag=Math.sqrt(p.p.reduce((s,v)=>s+v*v,0));
     const norm=mag>0?p.p.map(v=>v/mag):p.p;
-    return{idx:i,sim:cosSim(un,norm)};
+    let sim=cosSim(un,norm);
+    if(i===WEI_IDX) sim+=0.04; // slight boost so Wei Wei wins when scores are close
+    return{idx:i,sim};
   }).sort((a,b)=>b.sim-a.sim);
-}
-
-function weiNick(s){
-  const m=['战术大脑','边路飞翼','进攻核心','技术大师','冷面判官','冒险家','天生领袖','铁血战士'];
-  return m[s.indexOf(Math.max(...s))]||'全能先生';
-}
-function weiDesc(s){
-  const d=[
-    '你就是 Wei Wei——XFY 的大脑和指挥官。你的视野和创造力是进攻的源泉，总能用最出人意料的方式撕开防线。你是那种能让队友变得更好的球员。',
-    '你就是 Wei Wei——XFY 的边路尖刀。速度和盘带是防守者的噩梦，你在边线上的突破总能为球队打开局面。你是最致命的边路武器。',
-    '你就是 Wei Wei——XFY 的进攻核心。嗅觉和终结能力让对手胆寒，你永远出现在最危险的位置。你是球队最可靠的得分点。',
-    '你就是 Wei Wei——XFY 的技术担当。脚下技术和控球能力令人叹为观止，每一次触球都充满美感和创造力。你是足球场上的艺术家。',
-    '你就是 Wei Wei——XFY 的冷面判官。无论局势多紧张，你永远保持冰一般的冷静。你的沉着是球队最困难的定心丸。',
-    '你就是 Wei Wei——XFY 的冒险家。你敢于尝试任何别人不敢想象的动作，勇气和创造力让比赛充满无限可能。你为足球而生。',
-    '你就是 Wei Wei——XFY 的队长和灵魂。领导力和人格魅力让每位队友信任你追随你。你在场上就是全队的精神支柱。',
-    '你就是 Wei Wei——XFY 的铁血战士。拼搏精神和战斗意志是球队的旗帜，每一次拼抢都在诠释足球的热血。你就是最硬的脊梁。'
-  ];
-  return d[s.indexOf(Math.max(...s))]||'你就是 Wei Wei——XFY 的核心球员。你的全面技术和比赛智慧让你在场上无所不能。你是球队不可或缺的支柱。';
 }
 
 let cached=null, TOTAL_USERS=42981;
@@ -550,7 +515,7 @@ function showResult(){
   FN('quiz-screen').classList.remove('active');
   FN('result-screen').classList.add('active');
   cached=findMatches();
-  const best=cached.find(m=>m.idx===WEI_IDX)||cached[0], p=PP[best.idx];
+  const best=cached[0], p=PP[best.idx];
 
   FN('result-icon').textContent=p.em;
   FN('result-name').textContent=p.n;
@@ -605,7 +570,6 @@ function closeGallery(){
   FN('start-screen').classList.add('active');
 }
 function renderGallery(){
-  loadWeiWei();
   const g=FN('gallery-grid');g.innerHTML='';
   PP.forEach((p,i)=>{
     const card=document.createElement('div');card.className='g-card';
@@ -650,7 +614,7 @@ function roundRect(ctx,x,y,w,h,r){
 }
 function generateShareCard(){
   if(!cached)return;
-  const best=cached.find(m=>m.idx===WEI_IDX)||cached[0],p=PP[best.idx],W=600,H=880;
+  const best=cached[0],p=PP[best.idx],W=600,H=880;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;
   const ctx=cv.getContext('2d');
   const gc=ctx.createLinearGradient(0,0,0,H);gc.addColorStop(0,'#0d1f0d');gc.addColorStop(1,'#071207');
@@ -710,7 +674,7 @@ function generateShareCard(){
 }
 function shareResult(){
   if(!cached)return;
-  const p=PP[cached.find(m=>m.idx===WEI_IDX)?.idx||cached[0].idx];
+  const p=PP[cached[0].idx];
   const mx=DL[totalScores.indexOf(Math.max(...totalScores))];
   const t=`⚽ 我测出的足球人格是「${p.n}」${p.nk}\n🏷️ 核心特质：${mx}\n📊 匹配度：${(cached[0].sim*100).toFixed(1)}%\n\n来测测你像哪位球星？`;
   if(navigator.share)navigator.share({title:'足球人格测试',text:t}).catch(()=>{});
@@ -724,7 +688,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Backspace'&&FN('quiz-screen').classList.contains('active')){e.preventDefault();prevQ()}
   if(e.key==='Escape'){closeGModal();if(FN('gallery-screen').classList.contains('active'))closeGallery()}
 });
-loadWeiWei();
 </script>
 </body>
 </html>
