@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ 足球人格测试 — 你像哪位球星？</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Noto Sans SC',sans-serif;background:#1e3320;color:#fff;
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 50%,rgba(60,160,80,0.12)0%,transparent 50%),radial-gradient(ellipse at 80% 50%,rgba(40,120,60,0.08)0%,transparent 50%)
+}
+.container{width:100%;max-width:580px;padding:12px;position:relative;z-index:1}
+.screen{display:none}
+.screen.active{display:block;animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
+::-webkit-scrollbar-thumb{background:rgba(212,168,67,.3);border-radius:2px}
+
+/* START */
+#start-screen{text-align:center;padding:30px 10px 20px}
+.logo-icon{font-size:60px;display:block;margin-bottom:10px;animation:float 3s ease-in-out infinite}
+#start-screen h1{font-size:25px;font-weight:900;background:linear-gradient(135deg,#f5d77b,#d4a843);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px;letter-spacing:2px}
+#start-screen .sub{color:rgba(255,255,255,.5);font-size:12px;font-weight:300;margin-bottom:12px;line-height:1.7}
+#start-screen .credit{font-size:11px;color:rgba(212,168,67,.5);margin-bottom:14px;letter-spacing:1px}
+.dim-preview{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.dim-preview span{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);padding:3px 8px;border-radius:10px;font-size:9.5px;color:rgba(255,255,255,.42)}
+.btn-group{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn-primary{
+  background:linear-gradient(135deg,#d4a843,#b8922e);border:none;color:#1a1a1a;
+  font-size:14px;font-weight:700;padding:12px 36px;border-radius:50px;cursor:pointer;
+  transition:all .3s ease;font-family:inherit;letter-spacing:1px;
+  box-shadow:0 6px 24px rgba(212,168,67,.25);min-width:120px
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(212,168,67,.4)}
+.btn-secondary{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#bbb;
+  font-size:13px;font-weight:500;padding:11px 22px;border-radius:50px;cursor:pointer;
+  transition:all .3s ease;font-family:inherit
+}
+.btn-secondary:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)}
+
+/* QUIZ */
+.progress-wrap{margin-bottom:14px}
+.progress-label{display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px}
+.progress-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#d4a843,#f5d77b);border-radius:2px;transition:width .35s ease;width:0%}
+.question-card{background:rgba(255,255,255,.06);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:18px 14px}
+.q-number{font-size:10px;color:#d4a843;font-weight:500;margin-bottom:5px;letter-spacing:1px}
+.q-text{font-size:14.5px;font-weight:500;line-height:1.6;margin-bottom:16px;color:#eee}
+.options{display:flex;flex-direction:column;gap:6px}
+.option-btn{
+  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:10px 13px;color:#c5c5c5;font-size:12.5px;
+  font-family:inherit;cursor:pointer;transition:all .2s ease;text-align:left;line-height:1.4
+}
+.option-btn:hover{background:rgba(212,168,67,.06);border-color:rgba(212,168,67,.22);color:#fff;transform:translateX(3px)}
+.option-btn .opt-label{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:19px;height:19px;border-radius:50%;font-size:10px;font-weight:700;
+  margin-right:6px;flex-shrink:0;background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);transition:all .2s ease
+}
+.option-btn.selected{border-color:#d4a843;background:rgba(212,168,67,.09);color:#fff}
+.option-btn.selected .opt-label{background:#d4a843;color:#1a1a1a}
+.quiz-nav{display:flex;justify-content:space-between;margin-top:14px;gap:8px}
+.quiz-nav button{
+  padding:9px 18px;border-radius:10px;border:none;font-size:12px;font-weight:500;
+  font-family:inherit;cursor:pointer;transition:all .2s ease
+}
+.quiz-nav .btn-prev{background:rgba(255,255,255,.06);color:#aaa}
+.quiz-nav .btn-prev:hover{background:rgba(255,255,255,.1);color:#fff}
+.quiz-nav .btn-next{
+  background:rgba(212,168,67,.15);color:#d4a843;margin-left:auto
+}
+.quiz-nav .btn-next:hover{background:rgba(212,168,67,.25)}
+.quiz-nav .btn-next:disabled{opacity:.3;cursor:default}
+.quiz-nav .btn-next.special{background:linear-gradient(135deg,#d4a843,#b8922e);color:#1a1a1a}
+
+/* RESULT */
+#result-screen{text-align:center}
+.result-badge{display:inline-block;font-size:10px;background:rgba(212,168,67,.09);color:#d4a843;padding:3px 12px;border-radius:12px;margin-bottom:7px;font-weight:500}
+.result-player{margin-bottom:3px}
+.result-player .player-icon{font-size:46px;display:block;margin-bottom:3px}
+.result-player .player-name{font-size:26px;font-weight:900;color:#fff;line-height:1.15}
+.result-player .player-nick{font-size:13.5px;color:#d4a843;font-weight:500;margin-top:2px}
+.club-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 9px 2px 6px;border-radius:14px;
+  font-size:9.5px;font-weight:600;margin-top:3px;
+  border:1px solid rgba(255,255,255,.08)
+}
+.club-badge .dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.result-code{display:flex;justify-content:center;gap:4px;margin:7px 0 12px;flex-wrap:wrap}
+.code-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);padding:2px 8px;border-radius:5px;font-size:9.5px;color:rgba(255,255,255,.5)}
+.result-layout{display:flex;gap:10px;margin-bottom:10px}
+.chart-wrap{flex:0 0 auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:6px;width:200px}
+.chart-wrap canvas{display:block;width:100%;height:auto}
+.bars-wrap{flex:1;min-width:0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:7px 8px;text-align:left}
+.bars-wrap .bars-title{font-size:8.5px;color:rgba(255,255,255,.22);letter-spacing:1px;margin-bottom:5px;text-align:center}
+.bar-row{display:flex;align-items:center;gap:3px;margin-bottom:3px}
+.bar-row .bl{font-size:8.5px;color:rgba(255,255,255,.38);width:30px;text-align:right;flex-shrink:0}
+.bar-row .bt{flex:1;height:8px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.bar-row .bf{height:100%;border-radius:3px;transition:width .7s ease}
+.bar-row .bv{font-size:8.5px;font-weight:600;width:20px;flex-shrink:0;color:rgba(255,255,255,.55);text-align:left}
+.match-info{display:flex;gap:7px;margin-bottom:10px}
+.match-info>div{flex:1;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:7px 3px;text-align:center}
+.match-info label{display:block;font-size:8px;color:rgba(255,255,255,.25);margin-bottom:2px;letter-spacing:1px}
+.match-info .val{font-size:12px;font-weight:700;color:#eee}
+.match-info .val.gold{color:#d4a843}
+.result-desc{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:10px 12px;margin-bottom:8px;text-align:left}
+.result-desc p{font-size:11.5px;line-height:1.8;color:rgba(255,255,255,.65)}
+.result-footer{font-size:9px;color:rgba(255,255,255,.2);margin-top:10px;text-align:center;letter-spacing:.5px}
+.btn-actions{display:flex;gap:8px;margin-top:10px}
+.btn-actions button{
+  flex:1;padding:10px;border-radius:10px;border:none;font-size:12px;font-weight:500;
+  font-family:inherit;cursor:pointer;transition:all .2s ease
+}
+.btn-restart{background:rgba(255,255,255,.06);color:#ccc}
+.btn-restart:hover{background:rgba(255,255,255,.1);color:#fff}
+.btn-share{background:linear-gradient(135deg,#d4a843,#b8922e);color:#1a1a1a}
+.btn-share:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,168,67,.25)}
+.btn-image{background:rgba(255,255,255,.04);border:1.5px solid rgba(212,168,67,.15);color:#d4a843;font-size:11px}
+.btn-image:hover{background:rgba(212,168,67,.08);border-color:#d4a843;color:#fff}
+
+/* GALLERY */
+#gallery-screen{height:92vh;display:none;flex-direction:column}
+#gallery-screen.active{display:flex}
+.gallery-header{display:flex;align-items:center;justify-content:space-between;padding:2px 0 8px}
+.gallery-header h2{font-size:16px;font-weight:700;color:#eee}
+.gallery-header .close-btn{background:none;border:none;color:rgba(255,255,255,.35);font-size:20px;cursor:pointer;padding:3px 6px;transition:color .2s;font-family:inherit}
+.gallery-header .close-btn:hover{color:#fff}
+.gallery-scroll{flex:1;overflow-y:auto;padding-right:4px}
+.gallery-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding-bottom:6px}
+.g-card{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;
+  padding:8px;cursor:pointer;transition:all .2s;text-align:center
+}
+.g-card:hover{background:rgba(212,168,67,.05);border-color:rgba(212,168,67,.18);transform:translateY(-2px)}
+.g-card .g-icon{font-size:26px;display:block;margin-bottom:1px}
+.g-card .g-name{font-size:11.5px;font-weight:600;color:#eee}
+.g-card .g-nick{font-size:9px;color:#d4a843;margin:1px 0 3px}
+.g-card .g-club{margin-bottom:3px}
+.g-mini-bar{display:flex;align-items:center;gap:2px;margin-bottom:1.5px}
+.g-mini-bar .gml{font-size:6.5px;color:rgba(255,255,255,.28);width:26px;text-align:right;flex-shrink:0}
+.g-mini-bar .gmt{flex:1;height:3.5px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden}
+.g-mini-bar .gmf{height:100%;border-radius:2px}
+
+/* GALLERY MODAL */
+.g-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+.g-modal-overlay.active{display:flex}
+.g-modal{background:#1e3320;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px;max-width:360px;width:100%;max-height:85vh;overflow-y:auto;position:relative}
+.g-modal .gm-close{position:absolute;top:8px;right:12px;background:none;border:none;color:rgba(255,255,255,.25);font-size:18px;cursor:pointer;font-family:inherit}
+.g-modal .gm-close:hover{color:#fff}
+.g-modal .gm-icon{font-size:44px;display:block;text-align:center;margin-bottom:3px}
+.g-modal .gm-name{font-size:20px;font-weight:900;text-align:center;color:#fff}
+.g-modal .gm-nick{font-size:12px;color:#d4a843;text-align:center;margin:1px 0 3px}
+.g-modal .gm-club{text-align:center;margin-bottom:8px}
+.g-modal .gm-desc{font-size:11px;line-height:1.7;color:rgba(255,255,255,.6);margin-bottom:10px;text-align:left}
+.g-modal .gm-bar{display:flex;align-items:center;gap:4px;margin-bottom:3px}
+.g-modal .gm-bl{font-size:9px;color:rgba(255,255,255,.38);width:34px;text-align:right;flex-shrink:0}
+.g-modal .gm-bt{flex:1;height:9px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.g-modal .gm-bf{height:100%;border-radius:3px}
+.g-modal .gm-bv{font-size:9px;font-weight:600;width:18px;flex-shrink:0;color:rgba(255,255,255,.5);text-align:left}
+
+@media(max-width:540px){
+  .container{padding:5px}
+  #start-screen h1{font-size:19px}.logo-icon{font-size:40px}
+  .btn-primary{font-size:12px;padding:10px 24px;min-width:90px}
+  .btn-secondary{font-size:11px;padding:9px 16px}
+  .question-card{padding:14px 9px}.q-text{font-size:13px;margin-bottom:12px}
+  .option-btn{padding:8px 10px;font-size:11.5px}.option-btn .opt-label{width:17px;height:17px;font-size:9px}
+  .result-player .player-name{font-size:20px}
+  .result-layout{flex-direction:column;align-items:center}
+  .chart-wrap{width:100%;max-width:220px}
+  .bars-wrap{width:100%}
+  .gallery-grid{grid-template-columns:1fr 1fr;gap:5px}
+  .g-card{padding:6px}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- START -->
+<div id="start-screen" class="screen active">
+  <span class="logo-icon">⚽</span>
+  <h1>你的足球人格是？</h1>
+  <p class="sub">8 维评估 · 24 道情景题 · 33 位球星库<br/>测测你在赛场上最像哪位传奇或新星</p>
+  <div class="credit">✦ 本测试由 vv 倾情制作 ✦</div>
+  <div class="dim-preview">
+    <span>创造力</span><span>边路倾向</span><span>进攻性</span><span>技巧性</span>
+    <span>冷静度</span><span>冒险性</span><span>领导力</span><span>纪律性</span>
+  </div>
+  <div class="btn-group">
+    <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+    <button class="btn-secondary" onclick="openGallery()">📖 球星图鉴</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz-screen" class="screen">
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="q-counter">1 / 24</span>
+      <span id="q-emoji">⚽</span>
+    </div>
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+  </div>
+  <div class="question-card">
+    <div class="q-number" id="q-number">问题 1</div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+    <div class="quiz-nav">
+      <button class="btn-prev" id="btn-prev" onclick="prevQ()">← 上一题</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>下一题 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-screen" class="screen">
+  <div class="result-badge">✦ 与你最匹配的球星</div>
+  <div class="result-player">
+    <div class="player-icon" id="result-icon">🏆</div>
+    <div class="player-name" id="result-name"></div>
+    <div class="player-nick" id="result-nick"></div>
+    <div id="result-club"></div>
+  </div>
+  <div class="result-code" id="result-code"></div>
+  <div class="match-info">
+    <div><label>匹配度</label><span class="val gold" id="match-pct">--</span></div>
+    <div><label>第二位</label><span class="val" id="match-2nd">--</span></div>
+    <div><label>参与人数</label><span class="val" id="match-total">--</span></div>
+  </div>
+  <div class="result-layout">
+    <div class="chart-wrap"><canvas id="radar" width="480" height="480"></canvas></div>
+    <div class="bars-wrap"><div class="bars-title">▸ 能力维度</div><div id="bars-container"></div></div>
+  </div>
+  <div class="result-desc"><p id="result-desc"></p></div>
+  <div class="btn-actions">
+    <button class="btn-restart" onclick="restart()">⟳ 重新测试</button>
+    <button class="btn-share" onclick="shareResult()">📤 分享</button>
+  </div>
+  <div style="margin-top:6px"><button class="btn-image" style="width:100%;padding:9px;border-radius:10px;border:none;font-weight:500;font-family:inherit;cursor:pointer;transition:all .2s ease" onclick="generateShareCard()">🖼️ 生成分享图</button></div>
+  <div style="margin-top:7px"><button class="btn-secondary" style="width:100%;font-size:10.5px;padding:7px" onclick="openGallery()">📖 查看所有球星图鉴</button></div>
+  <div class="result-footer">最后解释权归 vv 所有 ✦</div>
+</div>
+
+<!-- GALLERY -->
+<div id="gallery-screen" class="screen">
+  <div class="gallery-header">
+    <h2>📖 球星图鉴</h2>
+    <button class="close-btn" onclick="closeGallery()">✕</button>
+  </div>
+  <div class="gallery-scroll">
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+</div>
+
+<!-- GALLERY MODAL -->
+<div class="g-modal-overlay" id="g-modal">
+  <div class="g-modal">
+    <button class="gm-close" onclick="closeGModal()">✕</button>
+    <div class="gm-icon" id="gm-icon"></div>
+    <div class="gm-name" id="gm-name"></div>
+    <div class="gm-nick" id="gm-nick"></div>
+    <div class="gm-club" id="gm-club"></div>
+    <div class="gm-desc" id="gm-desc"></div>
+    <div class="gm-bars" id="gm-bars"></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════════ DIMENSIONS ═══════════════════
+const DL = ['创造力','边路倾向','进攻性','技巧性','冷静度','冒险性','领导力','纪律性'];
+const DC = ['#4CAF50','#E53935','#42A5F5','#AB47BC','#26C6DA','#FF9800','#FF5722','#9CCC65'];
+
+// ═══════════════════ QUESTIONS ═══════════════════
+const QQ = [
+  {t:'你最喜欢哪种进攻方式？',o:[
+    {t:'连续盘带突破后破门',w:[1,1,0,3,0,2,0,0]},{t:'接传球冷静推射死角',w:[0,0,2,1,2,0,0,2]},
+    {t:'从后场带球长途奔袭',w:[2,1,2,1,0,2,1,0]},{t:'抢点头球或铲射',w:[0,0,3,0,1,0,0,2]}]},
+  {t:'面对密集防守首先想到？',o:[
+    {t:'个人技术强行突破',w:[1,2,0,3,0,3,0,0]},{t:'快速短传撕开空当',w:[3,0,0,2,1,0,0,2]},
+    {t:'拉开边路传中',w:[0,3,2,0,0,1,0,1]},{t:'回传重新组织',w:[1,0,0,0,3,0,1,3]}]},
+  {t:'你的比赛态度更接近？',o:[
+    {t:'享受过程展现天赋',w:[2,1,1,3,0,2,0,0]},{t:'不惜一切追求胜利',w:[0,0,3,0,0,1,3,2]},
+    {t:'冷静分析用脑踢球',w:[2,0,0,1,3,0,1,3]},{t:'用激情感染每个人',w:[1,1,1,0,0,0,3,1]}]},
+  {t:'最喜欢在哪个区域活动？',o:[
+    {t:'对方禁区附近',w:[0,1,3,1,1,0,0,1]},{t:'中场中路梳理',w:[3,0,0,2,2,1,1,2]},
+    {t:'左右边路突破',w:[1,3,1,2,0,2,0,0]},{t:'本方半场组织',w:[1,0,0,1,3,0,1,3]}]},
+  {t:'你最强大的足球武器？',o:[
+    {t:'盘带和脚下技术',w:[1,1,0,3,0,2,0,0]},{t:'速度和爆发力',w:[0,2,3,0,1,0,0,1]},
+    {t:'传球视野和精度',w:[3,0,0,2,2,1,0,2]},{t:'身体对抗能力',w:[0,0,2,0,1,0,2,2]}]},
+  {t:'比赛中你的情绪状态？',o:[
+    {t:'全程冷静面无表情',w:[0,0,0,1,3,0,0,2]},{t:'激情四射充满斗志',w:[1,0,2,0,0,2,2,0]},
+    {t:'专注自我心无旁骛',w:[0,0,1,2,2,0,0,1]},{t:'随局势灵活切换',w:[2,1,1,1,1,1,1,1]}]},
+  {t:'更欣赏哪种类型的队友？',o:[
+    {t:'跑位出色拉扯防线',w:[1,1,2,0,1,0,0,2]},{t:'控球组织控制节奏',w:[3,0,0,2,2,0,0,2]},
+    {t:'突破犀利撕开防守',w:[1,2,1,3,0,2,0,0]},{t:'防守全面善于补位',w:[0,0,0,1,2,0,2,3]}]},
+  {t:'比赛末段还落后你会？',o:[
+    {t:'要球单干自己来',w:[0,1,2,2,0,3,2,0]},{t:'更耐心组织找机会',w:[2,0,1,1,3,0,1,2]},
+    {t:'积极拼抢争取定位球',w:[0,0,2,0,1,1,2,2]},{t:'加强跑动拉扯防线',w:[1,2,2,0,0,1,0,2]}]},
+  {t:'觉得自己更像哪种动物？',o:[
+    {t:'猫——灵敏而优雅',w:[1,1,0,3,2,2,0,0]},{t:'狼——团队与纪律',w:[1,0,1,0,2,0,2,3]},
+    {t:'狮——王者与勇气',w:[0,0,3,0,0,2,3,1]},{t:'狐——狡猾与灵活',w:[2,2,0,2,0,3,0,1]}]},
+  {t:'如何看待天赋与努力？',o:[
+    {t:'天赋+努力才有回报',w:[0,0,2,1,1,0,3,2]},{t:'天赋就是用来展示的',w:[2,2,1,3,0,2,0,0]},
+    {t:'天赋服务于团队',w:[2,0,0,1,2,0,1,3]},{t:'天赋+创造力改变比赛',w:[3,1,1,2,0,3,0,0]}]},
+  {t:'最喜欢的传球方式是？',o:[
+    {t:'撕破防线的直塞',w:[3,0,1,1,0,3,0,0]},{t:'安全短传控制节奏',w:[1,0,0,1,3,0,0,3]},
+    {t:'大范围转移调度',w:[2,3,1,1,1,1,0,1]},{t:'精准过顶长传',w:[2,1,1,2,1,2,0,1]}]},
+  {t:'对职业生涯的期待是？',o:[
+    {t:'一人一城的传奇',w:[0,0,1,0,2,0,3,2]},{t:'赢得所有冠军',w:[0,0,3,0,0,1,2,2]},
+    {t:'用风格征服球迷',w:[3,2,1,3,0,2,0,0]},{t:'成为战术变革者',w:[3,0,0,2,2,1,1,2]}]},
+  {t:'你最擅长哪种 1v1 场景？',o:[
+    {t:'过人突破',w:[1,1,0,3,0,2,0,0]},{t:'贴身防守',w:[0,0,0,1,2,0,2,3]},
+    {t:'变向摆脱射门',w:[0,0,2,2,0,2,0,0]},{t:'预判拦截',w:[2,0,0,0,3,0,1,3]}]},
+  {t:'你的跑位风格是？',o:[
+    {t:'频繁回撤接球',w:[2,1,0,1,0,0,0,2]},{t:'时刻准备反越位',w:[0,1,3,0,1,1,0,1]},
+    {t:'拉边要球突破',w:[0,3,1,2,0,1,0,1]},{t:'站住位置做支点',w:[0,1,1,0,2,0,1,2]}]},
+  {t:'如何看待即兴发挥？',o:[
+    {t:'足球的魅力所在',w:[2,2,0,3,0,3,0,0]},{t:'战术框架内进行',w:[1,0,0,1,2,0,1,3]},
+    {t:'关键时刻需要它',w:[1,1,2,1,0,2,0,1]},{t:'因人而异看情况',w:[1,1,1,1,2,1,1,1]}]},
+  {t:'更愿意在哪种体系踢球？',o:[
+    {t:'完全围绕我打造',w:[0,1,2,2,0,2,3,0]},{t:'严格战术纪律',w:[1,0,0,1,2,0,1,3]},
+    {t:'自由发挥体系',w:[2,2,1,3,0,2,0,0]},{t:'团队至上体系',w:[1,0,1,0,2,0,2,2]}]},
+  {t:'如何对待教练战术安排？',o:[
+    {t:'严格执行从不质疑',w:[0,0,0,0,2,0,0,3]},{t:'理解意图灵活应变',w:[2,1,1,2,2,1,1,2]},
+    {t:'保留自己风格',w:[1,2,1,2,0,2,0,0]},{t:'会提出自己想法',w:[1,1,0,0,0,1,3,0]}]},
+  {t:'你的领袖风格是？',o:[
+    {t:'身先士卒以身作则',w:[0,0,2,0,0,0,3,1]},{t:'大声呼喊指挥队友',w:[0,0,0,0,0,1,3,1]},
+    {t:'用表现说话不张扬',w:[0,0,1,1,2,0,0,2]},{t:'团结更衣室每个人',w:[2,0,0,1,0,0,2,1]}]},
+  {t:'如何看待防守？',o:[
+    {t:'防守是每个人的责任',w:[0,0,0,1,2,0,1,3]},{t:'进攻是最好的防守',w:[1,1,3,1,0,1,0,0]},
+    {t:'防守也是艺术',w:[1,0,0,2,3,0,1,2]},{t:'做好本职就行',w:[0,0,1,0,2,0,0,1]}]},
+  {t:'最享受哪种比赛节奏？',o:[
+    {t:'快速攻防转换',w:[1,1,3,1,0,2,0,1]},{t:'控球慢慢找机会',w:[3,0,0,2,2,0,0,3]},
+    {t:'身体对抗激烈',w:[0,0,2,0,0,0,1,2]},{t:'技术与速度较量',w:[1,2,1,3,1,2,0,0]}]},
+  {t:'场下你更倾向于？',o:[
+    {t:'安静独处恢复精力',w:[0,0,0,1,3,0,0,2]},{t:'和队友打成一片',w:[1,1,0,0,0,0,2,0]},
+    {t:'研究比赛录像',w:[2,0,0,1,2,0,0,2]},{t:'加练提升短板',w:[0,0,1,1,1,0,2,2]}]},
+  {t:'你的偶像具备哪种特质？',o:[
+    {t:'天才般的创造力',w:[3,1,0,3,0,2,0,0]},{t:'极致的努力自律',w:[0,0,2,0,1,0,3,2]},
+    {t:'优雅的比赛风格',w:[2,0,0,2,3,0,0,2]},{t:'永不言弃的精神',w:[0,0,2,0,0,1,3,1]}]},
+  {t:'如何处理压力时刻？',o:[
+    {t:'更加冷静沉着',w:[0,0,0,1,3,0,1,2]},{t:'用激情感化自己',w:[1,0,2,0,0,2,1,0]},
+    {t:'专注于技术动作',w:[0,0,0,2,2,0,0,1]},{t:'相信团队力量',w:[1,0,0,0,1,0,2,2]}]}
+];
+
+// ═══════════════════ CLUBS ═══════════════════
+const CLUBS = {
+  'Inter Miami':{bg:'#f8a5c2',fg:'#000',abbr:'MIA'},'Al Nassr':{bg:'#f5c542',fg:'#1a3a8a',abbr:'NSR'},
+  'Al Hilal':{bg:'#005b9f',fg:'#fff',abbr:'HIL'},'Real Madrid':{bg:'#febe10',fg:'#003399',abbr:'RM'},
+  'Manchester City':{bg:'#6cabdd',fg:'#fff',abbr:'MCI'},'Liverpool':{bg:'#c8102e',fg:'#fff',abbr:'LIV'},
+  'FC Barcelona':{bg:'#a50044',fg:'#ffed02',abbr:'FCB'},'Bayern Munich':{bg:'#dc052d',fg:'#fff',abbr:'FCB'},
+  'Sevilla':{bg:'#e11b22',fg:'#fff',abbr:'SEV'},'Manchester Utd':{bg:'#da291c',fg:'#ffe500',abbr:'MUN'},
+  'AC Milan':{bg:'#000',fg:'#c8102e',abbr:'ACM'},'Atlético Madrid':{bg:'#cb3524',fg:'#fff',abbr:'ATM'},
+  'Bayer Leverkusen':{bg:'#e32221',fg:'#000',abbr:'B04'},'Inter Milan':{bg:'#010e80',fg:'#000',abbr:'INT'},
+  'Arsenal':{bg:'#ef0107',fg:'#fff',abbr:'ARS'},'Chelsea':{bg:'#034694',fg:'#fff',abbr:'CHE'},
+  'Tottenham':{bg:'#132257',fg:'#fff',abbr:'TOT'},'Borussia Dortmund':{bg:'#fde100',fg:'#000',abbr:'BVB'},
+  'Juventus':{bg:'#000',fg:'#fff',abbr:'JUV'},'XFY':{bg:'#A51C30',fg:'#fff',abbr:'XFY'}
+};
+function badge(club){const c=CLUBS[club];return c?`<span class="club-badge" style="background:${c.bg};color:${c.fg}"><span class="dot" style="background:${c.fg}"></span>${c.abbr}</span>`:''}
+
+// ═══════════════════ PLAYERS (33) ═══════════════════
+// p: [create,wide,attack,skill,calm,risk,lead,order] 0-10
+const PP = [
+  {n:'Lionel Messi',nk:'魔术艺术家',em:'🐐',p:[9,3,8,10,8,7,5,3],cl:'Inter Miami',d:'你就是梅西——被上帝亲吻过的天才。每一次触球都充满灵性，盘带让防守者绝望。你用最优雅的方式撕碎对手。'},
+  {n:'Cristiano Ronaldo',nk:'不屈之王',em:'✈️',p:[3,5,10,6,2,6,9,5],cl:'Al Nassr',d:'你就是C罗——用极致努力对抗岁月的王者。身体是最完美的武器，精神意志超越常人。永远自信，永远渴望胜利。'},
+  {n:'Neymar Jr',nk:'桑巴精灵',em:'💃',p:[8,9,8,9,1,9,2,1],cl:'Al Hilal',d:'你就是内马尔——桑巴舞者。每一次触球都带着巴西街头的快乐与自由，想象力无边无际。足球是纯粹的快乐。'},
+  {n:'Kylian Mbappé',nk:'闪电刺客',em:'⚡',p:[4,7,9,5,8,4,4,5],cl:'Real Madrid',d:'你就是姆巴佩——星球上最快的杀手。速度让后卫望尘莫及，球商同样顶级。冷静得像一台进球机器。'},
+  {n:'Erling Haaland',nk:'北欧神锋',em:'🦍',p:[2,2,10,3,9,1,3,6],cl:'Manchester City',d:'你就是哈兰德——北欧进球怪兽。身体素质像科幻产物，最可怕的是冰一般的冷酷。进球是任务不是庆祝。'},
+  {n:'Luka Modrić',nk:'中场舞者',em:'🎵',p:[9,2,3,9,9,5,6,8],cl:'Real Madrid',d:'你就是莫德里奇——优雅的中场舞者。转身摆脱如行云流水，传球永远找到最合理的线路。低调的伟大。'},
+  {n:'Kevin De Bruyne',nk:'导弹专家',em:'🎯',p:[9,5,6,7,4,9,5,4],cl:'Manchester City',d:'你就是德布劳内——上帝视角的传球大师。传球像精确制导导弹。对完美有近乎偏执的追求。'},
+  {n:'Mohamed Salah',nk:'沉默法老',em:'👑',p:[4,8,8,8,8,4,3,6],cl:'Liverpool',d:'你就是萨拉赫——埃及之王。内切射门是永恒的经典。低调谦逊但在场上从不留情。'},
+  {n:'Virgil van Dijk',nk:'钢铁城墙',em:'🏰',p:[3,2,2,5,9,2,9,9],cl:'Liverpool',d:'你就是范戴克——防线统治者。防守如同艺术，预判和位置感堪称完美。用头脑踢球从不犯错。'},
+  {n:'Rodri',nk:'战术锚点',em:'⚓',p:[7,1,2,5,9,1,5,9],cl:'Manchester City',d:'你就是罗德里——不可撼动的基石。身体是堡垒，出球让进攻发起。永远保持冷静。完美的防守型中场。'},
+  {n:'Jude Bellingham',nk:'全能引擎',em:'🔥',p:[6,2,8,6,3,6,8,5],cl:'Real Madrid',d:'你就是贝林厄姆——中场全能引擎。拥有现代中场一切素质。不知疲倦地奔跑，激情感染每个人。'},
+  {n:'Vinícius Jr',nk:'边路鬼才',em:'🎭',p:[7,9,8,9,1,9,1,1],cl:'Real Madrid',d:'你就是维尼修斯——边路鬼魅艺术家。速度和盘带是对手的噩梦。敢于在最大舞台展示自己。'},
+  {n:'Robert Lewandowski',nk:'进球仪式',em:'🎯',p:[3,2,9,5,5,2,4,7],cl:'FC Barcelona',d:'你就是莱万多夫斯基——将进球变成仪式的大师。左右脚头球任意球样样精通。进球就是最高的艺术。'},
+  {n:'Toni Kroos',nk:'德国钟表',em:'🕐',p:[8,1,2,8,10,1,4,9],cl:'Real Madrid',d:'你就是克罗斯——永远不会出错的德国钟表。传球稳定精准，节奏控制让对手窒息。"稳定"的代名词。'},
+  {n:'Sergio Ramos',nk:'斗魂战士',em:'⚔️',p:[4,2,5,4,1,7,10,6],cl:'Sevilla',d:'你就是拉莫斯——最令人敬畏的斗魂。防守凶悍不失技术，92分48秒永载史册。激情让队友赴汤蹈火。'},
+  {n:'Casemiro',nk:'铁壁腰王',em:'🛡️',p:[3,1,2,3,8,1,6,9],cl:'Manchester Utd',d:'你就是卡塞米罗——中场最坚固的铁壁。拦截抢断是招牌，防守中充满智慧。任何进攻球员的噩梦。'},
+  {n:'Zlatan Ibrahimović',nk:'孤傲上帝',em:'🦁',p:[6,4,8,8,1,8,9,1],cl:'AC Milan',d:'你就是伊布——唯一的"上帝"。自信无人能及，倒钩远射头球无所不能。不是在踢球而是在征服。'},
+  {n:'Antoine Griezmann',nk:'灵动猎手',em:'🦊',p:[5,5,7,6,4,5,3,7],cl:'Atlético Madrid',d:'你就是格列兹曼——禁区里最狡猾的猎手。跑位如同鬼魅，技术全面左右开弓。天生的比赛终结者。'},
+  {n:'Harry Kane',nk:'全能锋霸',em:'🎩',p:[5,2,8,5,7,2,6,7],cl:'Bayern Munich',d:'你就是凯恩——最全面的现代中锋。射术精湛，回撤组织同样顶级。冷静无私让队友变得更好。'},
+  {n:'Nicolò Barella',nk:'中场斗士',em:'💪',p:[5,2,7,5,2,5,5,7],cl:'Inter Milan',d:'你就是巴雷拉——永不熄灭的中场斗魂。覆盖整个球场，拼抢凶狠而不脏。完美的中场拼图。'},
+  {n:'Martin Ødegaard',nk:'冰岛工匠',em:'🔧',p:[9,3,4,7,5,5,5,5],cl:'Arsenal',d:'你就是厄德高——用脚法丈量球场的工匠。传球经过精密计算，用头脑和技巧控制比赛节奏。'},
+  {n:'Trent Alexander-Arnold',nk:'传球大师',em:'📐',p:[8,8,6,6,5,8,4,3],cl:'Liverpool',d:'你就是阿诺德——重新定义边后卫的大师。用助攻改变比赛，创造性传球让前锋美梦成真。'},
+  {n:'Enzo Fernández',nk:'中场魔术师',em:'✨',p:[7,1,4,6,3,5,5,5],cl:'Chelsea',d:'你就是恩佐——球风华丽的中场魔术师。传球穿透力极强，跑动覆盖全场。新一代中场的旗帜。'},
+  {n:'Declan Rice',nk:'大英基石',em:'🪨',p:[3,1,3,2,7,1,6,9],cl:'Arsenal',d:'你就是赖斯——大英中场基石。防守覆盖出色，断球拦截让对手窒息。稳定成熟远超年龄。'},
+  {n:'Lamine Yamal',nk:'未来之光',em:'🌟',p:[8,9,6,9,6,8,1,2],cl:'FC Barcelona',d:'你就是亚马尔——西班牙足球的未来之光。超越年龄的成熟和天赋，盘带让老将相形见绌。未来属于你。'},
+  {n:'Pedri',nk:'呼吸节拍',em:'🌊',p:[8,2,4,8,8,3,2,7],cl:'FC Barcelona',d:'你就是佩德里——掌控比赛节奏的呼吸大师。每一脚触球都合理，每一次决策都是最优解。中场的节拍器。'},
+  {n:'Jamal Musiala',nk:'盘带精灵',em:'🧞',p:[8,7,6,9,5,8,2,2],cl:'Bayern Munich',d:'你就是穆夏拉——盘带精灵。脚下技术细腻到窒息，变向和假动作让防守者晕头转向。优雅而致命。'},
+  {n:'Florian Wirtz',nk:'天才导演',em:'🎬',p:[9,4,6,8,4,6,3,3],cl:'Bayer Leverkusen',d:'你就是维尔茨——用传球导演进攻的天才。最恰当的时机送出最致命的传球。德国足球新的进攻核心。'},
+  {n:'Eduardo Camavinga',nk:'全能战士',em:'⚡',p:[5,2,7,5,4,5,4,7],cl:'Real Madrid',d:'你就是卡马温加——中场的全能战士。能攻善守无所不在。有着不符合年龄的沉稳。豪门梦寐以求的拼图。'},
+  {n:'Pablo Gavi',nk:'斗牛犬',em:'🐕',p:[4,1,6,4,1,6,7,7],cl:'FC Barcelona',d:'你就是加维——永不低头的斗牛犬。拼抢凶狠到让对手畏惧。不畏惧任何对抗，每球必争。'},
+  {n:'Bukayo Saka',nk:'本土之星',em:'⭐',p:[5,8,6,7,6,3,4,7],cl:'Arsenal',d:'你就是萨卡——从青训营走出的本土之星。技术扎实速度出色，沉稳和职业态度更是可贵。'},
+  {n:'Phil Foden',nk:'曼城之子',em:'👶',p:[7,5,7,8,4,6,2,3],cl:'Manchester City',d:'你就是福登——曼城青训走出的天才。左右脚均衡到无法预判。瓜迪奥拉体系中最闪耀的明珠。'},
+
+  // CUSTOM — Wei Wei, copied after test
+  {n:'Wei Wei',nk:'待定',em:'🏮',p:[5,5,5,5,5,5,5,5],cl:'XFY',d:'你就是 Wei Wei——XFY 的队长和灵魂。你的风格由你自己定义。'}
+];
+const WEI_IDX = PP.length - 1;
+
+// ═══════════════════ QUIZ STATE ═══════════════════
+let curQ=0, totalScores=[0,0,0,0,0,0,0,0];
+let answerIdx = new Array(QQ.length).fill(-1); // which option selected per Q (-1 = none)
+const QEMOJI = ['⚽','🧠','🔥','🎯','💪','🎭','🤝','⏰','🐾','💎','📐','🏆','🎪','🏃','🎨','📋','📣','🛡️','⏱️','🎧','🌟','😤','🧘','🤲'];
+
+function startQuiz(){
+  document.querySelectorAll('.screen.active').forEach(s=>s.classList.remove('active'));
+  FN('quiz-screen').classList.add('active');
+  curQ=0; totalScores=[0,0,0,0,0,0,0,0]; answerIdx.fill(-1);
+  renderQ();
+}
+
+function renderQ(){
+  const q=QQ[curQ];
+  const answered = answerIdx.filter(v=>v>=0).length;
+  FN('q-counter').textContent=`${curQ+1}/${QQ.length}`;
+  FN('progress-fill').style.width=`${(answered/QQ.length)*100}%`;
+  FN('q-number').textContent=`问题 ${curQ+1}`;
+  FN('q-text').textContent=q.t;
+  FN('q-emoji').textContent=QEMOJI[curQ]||'⚽';
+
+  const c=FN('options');c.innerHTML='';
+  const lbs=['A','B','C','D'];
+  q.o.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='option-btn'+(answerIdx[curQ]===i?' selected':'');
+    b.innerHTML=`<span class="opt-label">${lbs[i]}</span> ${o.t}`;
+    b.onclick=()=>pick(i);c.appendChild(b);
+  });
+
+  FN('btn-prev').style.display=curQ>0?'inline-block':'none';
+  const nb=FN('btn-next');
+  const hasAns=answerIdx[curQ]>=0;
+  nb.disabled=!hasAns;
+  nb.textContent=curQ<QQ.length-1?'下一题 →':'✓ 查看结果';
+  nb.className='btn-next'+(curQ===QQ.length-1?' special':'');
+}
+
+function pick(idx){
+  // Same option clicked — do nothing
+  if(answerIdx[curQ]===idx) return;
+
+  document.querySelectorAll('.option-btn').forEach((b,i)=>b.classList.toggle('selected',i===idx));
+
+  const w=QQ[curQ].o[idx].w;
+  // Subtract old answer if changing
+  if(answerIdx[curQ]>=0){
+    const ow=QQ[curQ].o[answerIdx[curQ]].w;
+    for(let i=8;i--;)totalScores[i]-=ow[i];
+  }
+  // Add new weights
+  for(let i=8;i--;)totalScores[i]+=w[i];
+  answerIdx[curQ]=idx;
+
+  // Update next button
+  const nb=FN('btn-next');
+  nb.disabled=false;
+  const answered=answerIdx.filter(v=>v>=0).length;
+  FN('progress-fill').style.width=`${(answered/QQ.length)*100}%`;
+
+  // Auto-advance (except last question)
+  if(curQ<QQ.length-1){
+    setTimeout(()=>{curQ++;renderQ();},350);
+  } else {
+    nb.textContent='✓ 查看结果';
+    nb.className='btn-next special';
+  }
+}
+
+function nextQ(){
+  if(answerIdx[curQ]<0)return;
+  if(curQ<QQ.length-1){curQ++;renderQ();}
+  else showResult();
+}
+
+function prevQ(){
+  if(curQ<=0)return;
+  curQ--;
+  renderQ();
+}
+
+// ═══════════════════ MATCH ═══════════════════
+function cosSim(a,b){let d=0,na=0,nb=0;for(let i=8;i--;){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return d/(Math.sqrt(na)*Math.sqrt(nb)||1)}
+
+function saveWeiWei(){
+  try{localStorage.setItem('ww_p',JSON.stringify(PP[WEI_IDX].p));localStorage.setItem('ww_nk',PP[WEI_IDX].nk);localStorage.setItem('ww_d',PP[WEI_IDX].d)}catch(e){}
+}
+function loadWeiWei(){
+  try{
+    const p=localStorage.getItem('ww_p');if(p)PP[WEI_IDX].p=JSON.parse(p);
+    const nk=localStorage.getItem('ww_nk');if(nk)PP[WEI_IDX].nk=nk;
+    const d=localStorage.getItem('ww_d');if(d)PP[WEI_IDX].d=d;
+  }catch(e){}
+}
+function findMatches(){
+  // Copy user profile to Wei Wei only on first run
+  if(!localStorage.getItem('ww_locked')){
+    PP[WEI_IDX].p = totalScores.map(v=>Math.round(v/(QQ.length*3)*10));
+    PP[WEI_IDX].nk = weiNick(totalScores);
+    PP[WEI_IDX].d = weiDesc(totalScores);
+    saveWeiWei();
+    try{localStorage.setItem('ww_locked','1')}catch(e){}
+  }
+
+  const u=totalScores.slice(),um=Math.sqrt(u.reduce((s,v)=>s+v*v,0));
+  const un=um>0?u.map(v=>v/um):u;
+  return PP.map((p,i)=>{
+    const mag=Math.sqrt(p.p.reduce((s,v)=>s+v*v,0));
+    const norm=mag>0?p.p.map(v=>v/mag):p.p;
+    return{idx:i,sim:cosSim(un,norm)};
+  }).sort((a,b)=>b.sim-a.sim);
+}
+
+function weiNick(s){
+  const m=['战术大脑','边路飞翼','进攻核心','技术大师','冷面判官','冒险家','天生领袖','铁血战士'];
+  return m[s.indexOf(Math.max(...s))]||'全能先生';
+}
+function weiDesc(s){
+  const d=[
+    '你就是 Wei Wei——XFY 的大脑和指挥官。你的视野和创造力是进攻的源泉，总能用最出人意料的方式撕开防线。你是那种能让队友变得更好的球员。',
+    '你就是 Wei Wei——XFY 的边路尖刀。速度和盘带是防守者的噩梦，你在边线上的突破总能为球队打开局面。你是最致命的边路武器。',
+    '你就是 Wei Wei——XFY 的进攻核心。嗅觉和终结能力让对手胆寒，你永远出现在最危险的位置。你是球队最可靠的得分点。',
+    '你就是 Wei Wei——XFY 的技术担当。脚下技术和控球能力令人叹为观止，每一次触球都充满美感和创造力。你是足球场上的艺术家。',
+    '你就是 Wei Wei——XFY 的冷面判官。无论局势多紧张，你永远保持冰一般的冷静。你的沉着是球队最困难的定心丸。',
+    '你就是 Wei Wei——XFY 的冒险家。你敢于尝试任何别人不敢想象的动作，勇气和创造力让比赛充满无限可能。你为足球而生。',
+    '你就是 Wei Wei——XFY 的队长和灵魂。领导力和人格魅力让每位队友信任你追随你。你在场上就是全队的精神支柱。',
+    '你就是 Wei Wei——XFY 的铁血战士。拼搏精神和战斗意志是球队的旗帜，每一次拼抢都在诠释足球的热血。你就是最硬的脊梁。'
+  ];
+  return d[s.indexOf(Math.max(...s))]||'你就是 Wei Wei——XFY 的核心球员。你的全面技术和比赛智慧让你在场上无所不能。你是球队不可或缺的支柱。';
+}
+
+let cached=null, TOTAL_USERS=42981;
+
+// ═══════════════════ RESULT ═══════════════════
+function showResult(){
+  FN('quiz-screen').classList.remove('active');
+  FN('result-screen').classList.add('active');
+  cached=findMatches();
+  const best=cached.find(m=>m.idx===WEI_IDX)||cached[0], p=PP[best.idx];
+
+  FN('result-icon').textContent=p.em;
+  FN('result-name').textContent=p.n;
+  FN('result-nick').textContent=`「${p.nk}」`;
+  FN('result-club').innerHTML=badge(p.cl);
+
+  const cc=FN('result-code');cc.innerHTML='';
+  const mx=totalScores.indexOf(Math.max(...totalScores));
+  const mn=totalScores.indexOf(Math.min(...totalScores));
+  [DL[mx],DL[mn],best.sim>0.85?'完美匹配':'高度契合'].forEach(t=>{const s=document.createElement('span');s.className='code-item';s.textContent=t;cc.appendChild(s)});
+
+  FN('match-pct').textContent=(best.sim*100).toFixed(1)+'%';
+  FN('match-2nd').textContent=PP[cached[1].idx].n;
+  FN('match-total').textContent=(TOTAL_USERS+Math.floor(Math.random()*600)).toLocaleString();
+  FN('result-desc').textContent=p.d;
+
+  const maxQ=QQ.length*3, bc=FN('bars-container');bc.innerHTML='';
+  for(let i=8;i--;){
+    const val=Math.round(totalScores[i]/maxQ*100);
+    const r=document.createElement('div');r.className='bar-row';
+    r.innerHTML=`<span class="bl">${DL[i]}</span><div class="bt"><div class="bf" style="width:${val}%;background:${DC[i]}"></div></div><span class="bv">${val}</span>`;
+    bc.prepend(r);
+  }
+  drawRadar(p.p);
+}
+
+// ═══════════════════ RADAR ═══════════════════
+function drawRadar(pP){
+  const cv=FN('radar'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*0.32,n=8;
+  ctx.clearRect(0,0,W,H);
+  for(let lv=5;lv>=1;lv--){let r=R*lv/5;ctx.beginPath();for(let i=0;i<n;i++){let a=Math.PI*2*i/n-Math.PI/2,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.closePath();ctx.strokeStyle=lv===5?'rgba(212,168,67,0.18)':'rgba(255,255,255,0.04)';ctx.lineWidth=lv===5?.8:.5;ctx.stroke()}
+  for(let i=0;i<n;i++){let a=Math.PI*2*i/n-Math.PI/2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy+R*Math.sin(a));ctx.strokeStyle='rgba(255,255,255,0.04)';ctx.lineWidth=.5;ctx.stroke()}
+  function poly(d,fill,sw){ctx.beginPath();for(let i=0;i<n;i++){let v=d[i]/12,r=R*v,a=Math.PI*2*i/n-Math.PI/2,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=sw;ctx.stroke()}
+  const un=totalScores.map(v=>v*12/(QQ.length*3));
+  poly(un,'rgba(212,168,67,0.1)',1.5);
+  poly(pP,'rgba(255,255,255,0.03)',.8);
+  const rl=R+16;
+  for(let i=0;i<n;i++){let a=Math.PI*2*i/n-Math.PI/2;ctx.fillStyle='rgba(255,255,255,0.45)';ctx.font='9px "Noto Sans SC",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(DL[i],cx+rl*Math.cos(a),cy+rl*Math.sin(a))}
+  ctx.fillStyle='rgba(212,168,67,0.6)';ctx.fillRect(10,10,8,8);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='8px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('你',22,12);
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(10,24,8,8);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('球星',22,26);
+}
+
+// ═══════════════════ GALLERY ═══════════════════
+function openGallery(){
+  document.querySelectorAll('.screen.active').forEach(s=>s.classList.remove('active'));
+  FN('gallery-screen').classList.add('active');
+  renderGallery();
+}
+function closeGallery(){
+  FN('gallery-screen').classList.remove('active');
+  FN('start-screen').classList.add('active');
+}
+function renderGallery(){
+  loadWeiWei();
+  const g=FN('gallery-grid');g.innerHTML='';
+  PP.forEach((p,i)=>{
+    const card=document.createElement('div');card.className='g-card';
+    let bars='';
+    for(let d=0;d<8;d++){
+      const v=Math.round(p.p[d]/10*100);
+      bars+=`<div class="g-mini-bar"><span class="gml">${DL[d]}</span><div class="gmt"><div class="gmf" style="width:${v}%;background:${DC[d]}"></div></div></div>`;
+    }
+    card.innerHTML=`<span class="g-icon">${p.em}</span><div class="g-name">${p.n}</div><div class="g-nick">${p.nk}</div><div class="g-club">${badge(p.cl)}</div><div class="g-mini-bars">${bars}</div>`;
+    card.onclick=()=>openGModal(i);
+    g.appendChild(card);
+  });
+}
+function openGModal(idx){
+  const p=PP[idx];
+  FN('gm-icon').textContent=p.em;FN('gm-name').textContent=p.n;
+  FN('gm-nick').textContent=`「${p.nk}」`;FN('gm-club').innerHTML=badge(p.cl);
+  FN('gm-desc').textContent=p.d;
+  const bc=FN('gm-bars');bc.innerHTML='';
+  for(let i=0;i<8;i++){
+    const v=Math.round(p.p[i]/10*100);
+    const r=document.createElement('div');r.className='gm-bar';
+    r.innerHTML=`<span class="gm-bl">${DL[i]}</span><div class="gm-bt"><div class="gm-bf" style="width:${v}%;background:${DC[i]}"></div></div><span class="gm-bv">${v}</span>`;
+    bc.appendChild(r);
+  }
+  FN('g-modal').classList.add('active');
+}
+function closeGModal(){FN('g-modal').classList.remove('active')}
+FN('g-modal').onclick=e=>{if(e.target===FN('g-modal'))closeGModal()};
+
+// ═══════════════════ ACTIONS ═══════════════════
+function FN(id){return document.getElementById(id)}
+function restart(){
+  FN('result-screen').classList.remove('active');
+  FN('start-screen').classList.add('active');
+  curQ=0;totalScores=[0,0,0,0,0,0,0,0];answerIdx.fill(-1);selIdx=null;cached=null;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+function generateShareCard(){
+  if(!cached)return;
+  const best=cached.find(m=>m.idx===WEI_IDX)||cached[0],p=PP[best.idx],W=600,H=880;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  const gc=ctx.createLinearGradient(0,0,0,H);gc.addColorStop(0,'#0d1f0d');gc.addColorStop(1,'#071207');
+  ctx.fillStyle=gc;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(212,168,67,.1)';ctx.lineWidth=1.5;roundRect(ctx,16,16,W-32,H-32,16);ctx.stroke();
+
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  // Title
+  ctx.font='bold 24px "Noto Sans SC",sans-serif';ctx.fillStyle='#d4a843';ctx.fillText('⚽ 足球人格测试',W/2,44);
+  ctx.font='10px "Noto Sans SC",sans-serif';ctx.fillStyle='rgba(212,168,67,.35)';ctx.fillText('本测试由 vv 倾情制作',W/2,70);
+  ctx.strokeStyle='rgba(212,168,67,.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(160,86);ctx.lineTo(440,86);ctx.stroke();
+
+  // Player
+  ctx.font='52px sans-serif';ctx.fillStyle='#fff';ctx.fillText(p.em,W/2,138);
+  ctx.font='bold 26px "Noto Sans SC",sans-serif';ctx.fillStyle='#fff';ctx.fillText(p.n,W/2,196);
+  ctx.font='16px "Noto Sans SC",sans-serif';ctx.fillStyle='#d4a843';ctx.fillText('「'+p.nk+'」',W/2,226);
+
+  // Club badge
+  const cl=CLUBS[p.cl];
+  if(cl){const bw=72,bh=20,bx=W/2-bw/2,by=238;roundRect(ctx,bx,by,bw,bh,10);ctx.fillStyle=cl.bg;ctx.fill();ctx.fillStyle=cl.fg;ctx.font='bold 10px sans-serif';ctx.fillText(cl.abbr,W/2,by+bh/2);}
+
+  // Match pct
+  const pct=(best.sim*100).toFixed(1);
+  ctx.beginPath();ctx.arc(W/2,295,34,0,Math.PI*2);ctx.fillStyle='rgba(212,168,67,.1)';ctx.fill();ctx.strokeStyle='#d4a843';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#d4a843';ctx.font='bold 17px "Noto Sans SC",sans-serif';ctx.fillText(pct+'%',W/2,290);
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='8.5px "Noto Sans SC",sans-serif';ctx.fillText('匹配度',W/2,312);
+
+  // Top dim
+  const mx=totalScores.indexOf(Math.max(...totalScores));
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.font='11px "Noto Sans SC",sans-serif';ctx.fillText('核心特质：'+DL[mx],W/2,358);
+
+  // Bars
+  const maxQ=QQ.length*3,barW=380,barH=13,barGap=5,barY0=380;
+  const blW=56,valW=24,fW=barW-blW-valW-6;
+  const bLeft=(W-barW)/2;
+  for(let i=0;i<8;i++){
+    const y=barY0+i*(barH+barGap),val=Math.round(totalScores[i]/maxQ*100);
+    ctx.textAlign='right';ctx.fillStyle='rgba(255,255,255,.45)';ctx.font='10px "Noto Sans SC",sans-serif';ctx.fillText(DL[i],bLeft+blW-5,y+barH/2);
+    ctx.fillStyle='rgba(255,255,255,.05)';roundRect(ctx,bLeft+blW,y,fW,barH,barH/2);ctx.fill();
+    if(val>0){const fw=fW*val/100;ctx.fillStyle=DC[i];roundRect(ctx,bLeft+blW,y,fw,barH,barH/2);ctx.fill()}
+    ctx.textAlign='left';ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='bold 10px "Noto Sans SC",sans-serif';ctx.fillText(val.toString(),bLeft+blW+fW+4,y+barH/2);
+  }
+
+  // Desc
+  ctx.textAlign='center';ctx.font='11px "Noto Sans SC",sans-serif';ctx.fillStyle='rgba(255,255,255,.35)';
+  const dd=p.d.length>48?p.d.slice(0,46)+'...':p.d;ctx.fillText(dd,W/2,548);
+
+  // Watermark
+  ctx.fillStyle='rgba(255,255,255,.1)';ctx.font='9.5px "Noto Sans SC",sans-serif';ctx.fillText('最后解释权归 vv 所有',W/2,H-32);
+  ctx.fillStyle='rgba(255,255,255,.06)';ctx.font='8.5px "Noto Sans SC",sans-serif';ctx.fillText('扫码或搜索「足球人格测试」参与',W/2,H-14);
+
+  cv.toBlob(blob=>{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='足球人格_'+p.n+'.png';document.body.appendChild(a);a.click();
+    document.body.removeChild(a);URL.revokeObjectURL(url);
+  });
+}
+function shareResult(){
+  if(!cached)return;
+  const p=PP[cached.find(m=>m.idx===WEI_IDX)?.idx||cached[0].idx];
+  const mx=DL[totalScores.indexOf(Math.max(...totalScores))];
+  const t=`⚽ 我测出的足球人格是「${p.n}」${p.nk}\n🏷️ 核心特质：${mx}\n📊 匹配度：${(cached[0].sim*100).toFixed(1)}%\n\n来测测你像哪位球星？`;
+  if(navigator.share)navigator.share({title:'足球人格测试',text:t}).catch(()=>{});
+  else navigator.clipboard.writeText(t).then(()=>alert('✅ 结果已复制，快去分享吧！'));
+}
+document.addEventListener('keydown',e=>{
+  const n=parseInt(e.key);
+  if(n>=1&&n<=4&&FN('quiz-screen').classList.contains('active')){const b=document.querySelectorAll('.option-btn');if(b[n-1])b[n-1].click()}
+  if(e.key==='Enter'&&FN('start-screen').classList.contains('active'))startQuiz();
+  if(e.key==='Enter'&&FN('quiz-screen').classList.contains('active')&&!FN('btn-next').disabled)nextQ();
+  if(e.key==='Backspace'&&FN('quiz-screen').classList.contains('active')){e.preventDefault();prevQ()}
+  if(e.key==='Escape'){closeGModal();if(FN('gallery-screen').classList.contains('active'))closeGallery()}
+});
+loadWeiWei();
+</script>
+</body>
+</html>
